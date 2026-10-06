@@ -39,6 +39,12 @@ export interface RuntimeExperiment {
   init?: (random: SeededRandom) => void;
   reset?: (random?: SeededRandom) => void;
   step?: (dt: number, frame?: RuntimeFrameInfo) => void;
+  /**
+   * Simulated seconds between algorithm steps while playing.
+   * `0` opts out of id-based pacing. `stepOnce` ignores this and always
+   * performs one algorithm step. Omit to use the classic-scene schedule.
+   */
+  playbackInterval?: number;
   render?: (
     ctx: CanvasRenderingContext2D,
     viewport?: RuntimeViewport,

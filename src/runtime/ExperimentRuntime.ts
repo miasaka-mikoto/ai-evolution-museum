@@ -1,6 +1,7 @@
 import { DebugState } from "./DebugState";
 import { PerformanceManager } from "./PerformanceManager";
 import { hashSeed, SeededRandom } from "./SeededRandom";
+import { playbackIntervalFor } from "./playbackPace";
 import type {
   ExperimentRuntimeOptions,
   RuntimeCallbacks,
@@ -53,6 +54,8 @@ export class ExperimentRuntime<T extends RuntimeExperiment = RuntimeExperiment> 
   private tick = 0;
   private time = 0;
   private droppedSteps = 0;
+  /** Simulated seconds accumulated toward the next paced algorithm step. */
+  private playbackAcc = 0;
   private viewport: RuntimeViewport = { width: 0, height: 0, pixelRatio: 1 };
   private state: RuntimeState;
 
@@ -129,6 +132,7 @@ export class ExperimentRuntime<T extends RuntimeExperiment = RuntimeExperiment> 
     this.tick = 0;
     this.time = 0;
     this.accumulator = 0;
+    this.playbackAcc = 0;
     if (experiment && options.initialize !== false) {
       experiment.setSeed?.(this.seed, this.random);
       experiment.init?.(this.random);
@@ -203,6 +207,7 @@ export class ExperimentRuntime<T extends RuntimeExperiment = RuntimeExperiment> 
     this.tick = 0;
     this.time = 0;
     this.accumulator = 0;
+    this.playbackAcc = 0;
     this.droppedSteps = 0;
     this.experiment?.reset?.(this.random);
     this.experiment?.setSeed?.(this.seed, this.random);
@@ -210,10 +215,14 @@ export class ExperimentRuntime<T extends RuntimeExperiment = RuntimeExperiment> 
     this.emitState();
   }
 
-  /** Advance one exact simulation tick even while paused. */
+  /**
+   * Advance one algorithm step even while paused.
+   * Paced scenes ignore the autoplay interval here, so Step stays a single
+   * tape move, ply, expansion, or dialogue turn.
+   */
   stepOnce(): void {
     if (!this.experiment || this.disposed) return;
-    this.advanceSimulation(this.fixedStep);
+    this.advanceSimulation(this.fixedStep, true);
     this.render(0);
     this.emitState();
   }
@@ -315,10 +324,30 @@ export class ExperimentRuntime<T extends RuntimeExperiment = RuntimeExperiment> 
     this.scheduleFrame();
   };
 
-  private advanceSimulation(dt: number): void {
+  /**
+   * Host ticks stay at `fixedStep` so rendering and telemetry keep their
+   * cadence. Discrete classic scenes consume those ticks until one
+   * human-scale interval has elapsed, then take a single algorithm step.
+   * `force` is the Step control: one meaningful step, clock untouched.
+   */
+  private advanceSimulation(dt: number, force = false): void {
     if (!this.experiment) return;
-    const frame = this.frameInfo(0);
-    this.experiment.step?.(dt, frame);
+    const interval = force ? 0 : playbackIntervalFor(this.experiment);
+    let algorithmSteps = 1;
+    if (interval > 0) {
+      this.playbackAcc += Math.max(0, dt);
+      algorithmSteps = 0;
+      // A normal frame contributes 1/60 s, so this fires 0 or 1 times.
+      // A large explicit advance() may cover several intervals.
+      while (this.playbackAcc + 1e-6 >= interval && algorithmSteps < 32) {
+        this.playbackAcc -= interval;
+        if (this.playbackAcc < 1e-6) this.playbackAcc = 0;
+        algorithmSteps += 1;
+      }
+    }
+    for (let i = 0; i < algorithmSteps; i += 1) {
+      this.experiment.step?.(dt, this.frameInfo(0));
+    }
     this.tick += 1;
     this.time += dt;
     const nextFrame = this.frameInfo(0);
