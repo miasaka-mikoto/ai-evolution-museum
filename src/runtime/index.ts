@@ -4,4 +4,5 @@ export * from "./PerformanceManager";
 export * from "./DebugState";
 export * from "./Screenshot";
 export * from "./ExperimentRuntime";
+export * from "./playbackPace";
 

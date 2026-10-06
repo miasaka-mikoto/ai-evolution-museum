@@ -37,9 +37,18 @@ export class ElizaExperiment extends ExperimentBase implements ExperimentInstanc
     for (const rule of this.rules) { const match = rule.pattern.exec(input); if (match) { const template = rule.replies[this.tick % rule.replies.length]; return template.replace(/\$(\d+)/g, (_, n) => this.reflect(match[Number(n)] || 'that')); } }
     return this.fallback[this.tick % this.fallback.length];
   }
-  step() { this.ensureInit(); const input = this.pending || ['I am learning', 'my work is difficult', 'I feel curious'][this.tick % 3]; this.pending = ''; this.lines.push({ who: 'YOU', body: input }, { who: 'ELIZA', body: this.answer(input) }); this.tick++; }
+  step() {
+    this.ensureInit();
+    const input = this.pending || ['I am learning', 'my work is difficult', 'I feel curious'][this.tick % 3];
+    this.pending = '';
+    this.lines.push({ who: 'YOU', body: input }, { who: 'ELIZA', body: this.answer(input) });
+    this.tick++;
+    // The canvas only shows the latest lines. Drop older ones so a paused
+    // carousel (details open) cannot grow this transcript without bound.
+    if (this.lines.length > 24) this.lines.splice(0, this.lines.length - 24);
+  }
   handleInput(input: unknown) { if (typeof input !== 'string') return; if (input === 'Backspace') this.pending = this.pending.slice(0, -1); else if (input.length === 1) this.pending = `${this.pending}${input}`.slice(-160); else if (input.trim()) this.pending = input.trim().slice(0, 160); }
-  getMetrics() { return { tick: this.tick, rules: this.rules.length, turns: Math.floor(this.lines.length / 2) }; }
+  getMetrics() { return { tick: this.tick, rules: this.rules.length, turns: this.tick }; }
   getState() { return { lines: [...this.lines], rules: this.rules.map(r => r.pattern.source) }; }
   render(ctx: RenderTarget, width = this.width, height = this.height) {
     const c = ctx as CanvasRenderingContext2D; clearCanvas(c, '#101216'); text(c, 'ELIZA · PATTERN / WILDCARD / REFLECTION', 28, 34, 12, '#aab3bd');
