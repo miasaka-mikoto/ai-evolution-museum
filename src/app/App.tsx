@@ -154,10 +154,14 @@ export function App({ experiments, initialExperimentId, showLogin = true }: AppP
       if (event.code === 'Space') { event.preventDefault(); setRunning(value => !value); }
       if (event.key === 'ArrowRight') { event.preventDefault(); const ordered = orderedCatalog; const i = ordered.findIndex(x => x.id === activeRef.current?.id); if (ordered.length) changeExperiment(ordered[(i >= 0 ? i + 1 : 0) % ordered.length].id); }
       if (event.key === 'ArrowLeft') { event.preventDefault(); const ordered = orderedCatalog; const i = ordered.findIndex(x => x.id === activeRef.current?.id); if (ordered.length) changeExperiment(ordered[(i >= 0 ? i - 1 + ordered.length : ordered.length - 1) % ordered.length].id); }
-      if (event.key.toLowerCase() === 'r') { event.preventDefault(); runtime?.reset(); setElapsed(0); }
-      if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFullscreen(); }
-      if (event.key.toLowerCase() === 's') { event.preventDefault(); captureRef.current(); }
-      if (event.key.toLowerCase() === 'd') { event.preventDefault(); setDebug(value => !value); }
+      // Ctrl/Cmd/Alt belong to the browser and OS (find, save, bookmark, reload).
+      // Shift stays a plain shortcut so Shift+R still resets.
+      if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+        if (event.key.toLowerCase() === 'r') { event.preventDefault(); runtime?.reset(); setElapsed(0); }
+        if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFullscreen(); }
+        if (event.key.toLowerCase() === 's') { event.preventDefault(); captureRef.current(); }
+        if (event.key.toLowerCase() === 'd') { event.preventDefault(); setDebug(value => !value); }
+      }
       if (event.key === 'Escape' && presentation) setPresentation(false);
     };
     window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey);
