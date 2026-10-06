@@ -21,7 +21,7 @@ button { cursor: pointer; }
 .aem-experiment-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; background: var(--aem-background, #080a0d); }
 .aem-vignette { position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(ellipse at 50% 48%, transparent 42%, rgba(0,0,0,.42) 100%), linear-gradient(180deg, rgba(0,0,0,.36), transparent 24%, transparent 72%, rgba(0,0,0,.68)); }
 .aem-transition-canvas { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; display: block; pointer-events: none; mix-blend-mode: screen; }
-.aem-topbar, .aem-caption, .aem-controls, .aem-bottom-tools, .aem-timeline, .aem-detail-panel, .aem-settings-panel, .aem-debug-panel { position: absolute; z-index: 5; }
+.aem-topbar, .aem-caption, .aem-controls, .aem-bottom-tools, .aem-timeline, .aem-detail-panel, .aem-settings-panel, .aem-library-panel, .aem-debug-panel { position: absolute; z-index: 5; }
 .aem-topbar { top: 0; left: 0; right: 0; height: 76px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; background: linear-gradient(180deg, rgba(5,7,9,.78), transparent); }
 .aem-brand { display: flex; gap: 12px; align-items: center; letter-spacing: .1em; }
 .aem-brand-mark, .aem-login-mark { display: inline-flex; align-items: flex-end; gap: 3px; height: 22px; }
@@ -79,12 +79,13 @@ button { cursor: pointer; }
 }
 .aem-detail-panel, .aem-settings-panel, .aem-library-panel { top: 20px; right: 20px; bottom: 20px; width: min(390px, calc(100vw - 40px)); overflow: auto; padding: 24px; background: rgba(10,13,17,.92); border: 1px solid rgba(205,215,220,.16); box-shadow: -20px 0 60px rgba(0,0,0,.28); backdrop-filter: blur(14px); }
 .aem-settings-panel { top: 76px; bottom: auto; min-height: 220px; }
-.aem-library-panel { z-index: 6; }
+.aem-library-panel { z-index: 6; display: flex; flex-direction: column; overflow: hidden; }
+.aem-library-panel > .aem-panel-head, .aem-library-panel > .aem-library-search, .aem-library-panel > .aem-library-count { flex-shrink: 0; }
 .aem-library-search { display: block; margin: 22px 0 8px; color: #8997a0; font: 10px ui-monospace, monospace; }
 .aem-library-search input { display: block; width: 100%; margin-top: 7px; padding: 9px 10px; color: #e4e9eb; background: rgba(255,255,255,.04); border: 1px solid rgba(205,215,220,.2); border-radius: 3px; outline: none; }
 .aem-library-search input:focus { border-color: #d8bd81; }
 .aem-library-count { margin: 13px 0 8px; color: #65727a; font: 9px ui-monospace, monospace; }
-.aem-library-list { display: grid; gap: 5px; }
+.aem-library-list { display: grid; align-content: start; gap: 5px; min-height: 0; flex: 1 1 auto; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 .aem-library-list button { display: grid; grid-template-columns: 42px 1fr 18px; gap: 8px; align-items: center; width: 100%; padding: 10px 8px; text-align: left; color: #c4cdd1; background: rgba(255,255,255,.025); border: 1px solid transparent; border-radius: 3px; }
 .aem-library-list button:hover, .aem-library-list button:focus-visible, .aem-library-list button.is-active { border-color: rgba(216,189,129,.42); background: rgba(216,189,129,.08); outline: none; }
 .aem-library-year { color: #d8bd81; font: 10px ui-monospace, monospace; }

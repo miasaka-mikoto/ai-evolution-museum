@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { MuseumExperiment } from '../app/types';
 
 interface Props {
@@ -12,6 +12,18 @@ interface Props {
 /** Searchable catalogue view kept separate from the chronological timeline. */
 export function ExperimentLibrary({ experiments, activeId, open, onSelect, onClose }: Props) {
   const [query, setQuery] = useState('');
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      onCloseRef.current();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open]);
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
     return [...experiments].sort((a, b) => a.year - b.year).filter(item => !term || [
